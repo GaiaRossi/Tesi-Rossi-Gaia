@@ -20,4 +20,4 @@ Si è utilizzata l'implementazione di MQTT di Eclipse con Eclipse Paho.
 
 Si è creato anche un flow su Node-RED per permettere la comunicazione tra il client in Python e Node-RED
 
-![immagine del flow](http://github.com/GaiaRossi/Tesi-Rossi-Gaia/blob/main/images/nodered_client_flow.png)
+![immagine del flow](http://github.com/GaiaRossi/Tesi-Rossi-Gaia/blob/main/images/nodered_client_flow.png?raw=true)
