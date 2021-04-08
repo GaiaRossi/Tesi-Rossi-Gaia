@@ -2,7 +2,7 @@
 ## Obiettivi: Soluzione IoT per l'attuazione remota di un braccio robotico tramite sensore inerziale
 
 ### ToDo
-[x] simulare in Python un client mittente e destinatario e farli comunicare tramite Node-Red e MQTT
+- [x] simulare in Python un client mittente e destinatario e farli comunicare tramite Node-Red e MQTT
 
 ### Client in Python
 Si è utilizzato il broker mosquitto sulla porta 1883. Per avviare il broker
