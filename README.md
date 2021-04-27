@@ -3,7 +3,7 @@
 
 ### ToDo
 - [x] simulare in Python un client mittente e destinatario e farli comunicare tramite Node-Red e MQTT
-- [] permettere il movimento del braccio premendo i tasti sulla tastiera 
+- [ ] permettere il movimento del braccio premendo i tasti sulla tastiera 
 
 ### Client in Python
 Si è utilizzato il broker mosquitto sulla porta 1883. Per avviare il broker
