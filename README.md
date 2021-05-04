@@ -36,7 +36,11 @@ Si è utilizzato il broker mosquitto come in precedenza descritto in "Client in 
 
 Si è andato quindi a defire il formato dei messaggi che devono essere scambiati tramite l'applicazione node-red e il braccio meArm, optando per l'invio dei dati con JSON.
 Si è quindi creato un flow che permettesse di inviare messaggi al braccio e ricevere le risposte.
+![immagine del flow per movimento con node-red](https://github.com/GaiaRossi/Tesi-Rossi-Gaia/blob/main/images/flow_movimento_con_node-red.png?raw=true)
 Comandi di movimento per il braccio e messaggi di risposta sono inviati con due topic differenti.
+
+![immagine del nodo che invia i comandi](https://github.com/GaiaRossi/Tesi-Rossi-Gaia/blob/main/images/nodo_invia_comandi.png?raw=true)
+![immagine del nodo che riceve le risposte ai comandi](https://github.com/GaiaRossi/Tesi-Rossi-Gaia/blob/main/images/nodo_legge_risposte.png?raw=true)
 
 Una volta definito il formato dei messaggi, si è proceduto alla creazione dello script da avviare sul raspberry pi per ricevere i comandi di movimento e farli eseguire al braccio. 
 Si è quindi importato il modulo ```json``` in python per poter leggere il contenuto dell'oggetto inviato tramite node-red.
