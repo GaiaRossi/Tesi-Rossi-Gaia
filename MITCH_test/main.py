@@ -1,4 +1,6 @@
 import asyncio, binascii, sys, curses
+
+from curses import wrapper
 from threading import Thread
 from bleak import BleakClient
 
@@ -23,6 +25,9 @@ MODE = 0x04
 FREQUENCY = 0x04
 #lunghezza dei dati inviati
 LENGTH = 0x03
+
+#curses things
+stdscr = curses.initscr()
 
 async def connection(address):
     global client
@@ -68,6 +73,9 @@ def main_callback():
     async_loop.run_forever()
 
 def data_conversion(pkg):
+
+    global stdscr
+
     num_list = list(pkg)
 
     # gyro
@@ -81,11 +89,15 @@ def data_conversion(pkg):
     y_axl = ((int.from_bytes(bytes(num_list[12:14]), byteorder='little', signed=True)*0.488)/1000)*9.8066
     z_axl = ((int.from_bytes(bytes(num_list[14:16]), byteorder='little', signed=True)*0.488)/1000)*9.8066
 
-    sys.stdout.write("\rGiroscopio: {0:.2f}, {1:.2f}, {2:.2f} | Accelerometro: {3:.2f}, {4:.2f}, {5:.2f}\r".format(x_gyro, y_gyro, z_gyro,
+    stdscr.addstr("Giroscopio: {0:2.2f}, {1:2.2f}, {2:2.2f} | Accelerometro: {3:2.2f}, {4:2.2f}, {5:2.2f}\r".format(x_gyro, y_gyro, z_gyro,
                                                                         x_axl, y_axl, z_axl))
-    sys.stdout.flush()
+    stdscr.refresh()
 
     print()
 
-main_thread = Thread(target=main_callback)
-main_thread.start()
+def main(stdscr):
+    stdscr.clear()
+    main_thread = Thread(target=main_callback)
+    main_thread.start()
+
+wrapper(main)
