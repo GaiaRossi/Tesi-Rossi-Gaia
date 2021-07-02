@@ -1,4 +1,4 @@
-import asyncio, binascii, sys, curses
+import asyncio, binascii, curses, math
 
 from curses import wrapper
 from threading import Thread
@@ -89,15 +89,18 @@ def data_conversion(pkg):
     y_axl = ((int.from_bytes(bytes(num_list[12:14]), byteorder='little', signed=True)*0.488)/1000)*9.8066
     z_axl = ((int.from_bytes(bytes(num_list[14:16]), byteorder='little', signed=True)*0.488)/1000)*9.8066
 
-    stdscr.addstr("Giroscopio: {0:2.2f}, {1:2.2f}, {2:2.2f} | Accelerometro: {3:2.2f}, {4:2.2f}, {5:2.2f}\r".format(x_gyro, y_gyro, z_gyro,
-                                                                        x_axl, y_axl, z_axl))
-    stdscr.refresh()
-
-    print()
+    #chiedere perche sono invertiti
+    roll = 180 * math.atan2(x_axl, math.sqrt(y_axl**2 + z_axl**2))/math.pi
+    pitch = 180 * math.atan2(y_axl, math.sqrt(x_axl**2 + z_axl**2))/math.pi
+    
+    #stdscr.addstr("Giroscopio: {0:2.2f}, {1:2.2f}, {2:2.2f} | Accelerometro: {3:2.2f}, {4:2.2f}, {5:2.2f}\r".format(x_gyro, y_gyro, z_gyro, x_axl, y_axl, z_axl))
+    print("\rPitch: {}\tRoll: {}".format(pitch, roll))
+    #stdscr.refresh()
 
 def main(stdscr):
-    stdscr.clear()
+    #stdscr.clear()
     main_thread = Thread(target=main_callback)
     main_thread.start()
 
-wrapper(main)
+#wrapper(main)
+main(0)
