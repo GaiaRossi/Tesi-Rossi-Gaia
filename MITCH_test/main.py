@@ -20,7 +20,7 @@ WRITE_ACCESS_BYTE = 0x02
 #sys tx
 STATE_OF_SYSTEM = 0xF8
 #attivo tutto il possibile del bracciale
-MODE = 0x04
+MODE = 0x05
 #funzionera con frequenza 50hz
 FREQUENCY = 0x04
 #lunghezza dei dati inviati
@@ -64,7 +64,9 @@ async def connection(address):
         exit(0)
 
 def notification_handler(sender, data):
-    #print("Letto sullo stream dati: {}".format(binascii.hexlify(data)))
+    #print("\rLetto sullo stream dati: {}".format(binascii.hexlify(data)))
+    pkg_len = int.from_bytes(bytes(data[1:2]), byteorder='little', signed=False)
+    print("\rLunghezza payload: {}".format(pkg_len))
     data_conversion(data)
 
 def main_callback():
@@ -89,12 +91,20 @@ def data_conversion(pkg):
     y_axl = ((int.from_bytes(bytes(num_list[12:14]), byteorder='little', signed=True)*0.488)/1000)*9.8066
     z_axl = ((int.from_bytes(bytes(num_list[14:16]), byteorder='little', signed=True)*0.488)/1000)*9.8066
 
+    #magn
+    #niente z per magnetometro
+    #il pacchetto arriva al massimo a 20 bytes
+    x_mag = int.from_bytes(bytes(num_list[16:18]), byteorder='little', signed=True)
+    y_mag = int.from_bytes(bytes(num_list[18:20]), byteorder='little', signed=True)
+
     #chiedere perche sono invertiti
     roll = 180 * math.atan2(x_axl, math.sqrt(y_axl**2 + z_axl**2))/math.pi
     pitch = 180 * math.atan2(y_axl, math.sqrt(x_axl**2 + z_axl**2))/math.pi
+    yaw = 180 * math.atan2(y_mag,x_mag)/math.pi;
     
     #stdscr.addstr("Giroscopio: {0:2.2f}, {1:2.2f}, {2:2.2f} | Accelerometro: {3:2.2f}, {4:2.2f}, {5:2.2f}\r".format(x_gyro, y_gyro, z_gyro, x_axl, y_axl, z_axl))
-    print("\rPitch: {}\tRoll: {}".format(pitch, roll))
+    #print("\rPitch: {}\tRoll: {}".format(pitch, roll))
+    print("\rMagnetometro: {0:.2f} {1:.2f}, Yaw: {2:.2f}".format(x_mag, y_mag, yaw))
     #stdscr.refresh()
 
 def main(stdscr):
