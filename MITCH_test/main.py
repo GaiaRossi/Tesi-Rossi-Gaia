@@ -1,6 +1,5 @@
 import asyncio, binascii, curses, math
 
-from curses import wrapper
 from threading import Thread
 from bleak import BleakClient
 
@@ -25,9 +24,6 @@ MODE = 0x05
 FREQUENCY = 0x04
 #lunghezza dei dati inviati
 LENGTH = 0x03
-
-#curses things
-stdscr = curses.initscr()
 
 async def connection(address):
     global client
@@ -81,36 +77,32 @@ def data_conversion(pkg):
     num_list = list(pkg)
 
     # gyro
-    x_gyro = int.from_bytes(bytes(num_list[4:6]), byteorder='little', signed=True)*0.07*0.01745
-    y_gyro = int.from_bytes(bytes(num_list[6:8]), byteorder='little', signed=True)*0.07*0.01745
-    z_gyro = int.from_bytes(bytes(num_list[8:10]), byteorder='little', signed=True)*0.07*0.01745
+    x_gyro = int.from_bytes(bytes(num_list[2:4]), byteorder='little', signed=True)*0.07*0.01745
+    y_gyro = int.from_bytes(bytes(num_list[4:6]), byteorder='little', signed=True)*0.07*0.01745
+    z_gyro = int.from_bytes(bytes(num_list[6:8]), byteorder='little', signed=True)*0.07*0.01745
 
     # axl
     #x sensibilita ) / 1000 ) x gravita
-    x_axl = ((int.from_bytes(bytes(num_list[10:12]), byteorder='little', signed=True)*0.488)/1000)*9.8066
-    y_axl = ((int.from_bytes(bytes(num_list[12:14]), byteorder='little', signed=True)*0.488)/1000)*9.8066
-    z_axl = ((int.from_bytes(bytes(num_list[14:16]), byteorder='little', signed=True)*0.488)/1000)*9.8066
+    x_axl = ((int.from_bytes(bytes(num_list[8:10]), byteorder='little', signed=True)*0.488)/1000)*9.8066
+    y_axl = ((int.from_bytes(bytes(num_list[10:12]), byteorder='little', signed=True)*0.488)/1000)*9.8066
+    z_axl = ((int.from_bytes(bytes(num_list[12:14]), byteorder='little', signed=True)*0.488)/1000)*9.8066
 
     #magn
-    #niente z per magnetometro
     #il pacchetto arriva al massimo a 20 bytes
-    x_mag = int.from_bytes(bytes(num_list[16:18]), byteorder='little', signed=True)
-    y_mag = int.from_bytes(bytes(num_list[18:20]), byteorder='little', signed=True)
+    x_mag = int.from_bytes(bytes(num_list[14:16]), byteorder='little', signed=True)*1.5
+    y_mag = int.from_bytes(bytes(num_list[16:18]), byteorder='little', signed=True)*1.5
+    z_mag = int.from_bytes(bytes(num_list[18:20]), byteorder='little', signed=True)*1.5
 
-    #chiedere perche sono invertiti
     roll = 180 * math.atan2(x_axl, math.sqrt(y_axl**2 + z_axl**2))/math.pi
     pitch = 180 * math.atan2(y_axl, math.sqrt(x_axl**2 + z_axl**2))/math.pi
-    yaw = 180 * math.atan2(y_mag,x_mag)/math.pi;
+    #cerco di normalizzare il valore tra 0 e 360
+    yaw = 180 + (180 * math.atan2(y_mag,x_mag)/math.pi);
     
-    #stdscr.addstr("Giroscopio: {0:2.2f}, {1:2.2f}, {2:2.2f} | Accelerometro: {3:2.2f}, {4:2.2f}, {5:2.2f}\r".format(x_gyro, y_gyro, z_gyro, x_axl, y_axl, z_axl))
-    #print("\rPitch: {}\tRoll: {}".format(pitch, roll))
-    print("\rMagnetometro: {0:.2f} {1:.2f}, Yaw: {2:.2f}".format(x_mag, y_mag, yaw))
-    #stdscr.refresh()
+    print("\rPitch: {}\tRoll: {}".format(pitch, roll))
+    print("\rYaw: {2:.2f}".format(x_mag, y_mag, yaw))
 
 def main(stdscr):
-    #stdscr.clear()
     main_thread = Thread(target=main_callback)
     main_thread.start()
 
-#wrapper(main)
 main(0)
