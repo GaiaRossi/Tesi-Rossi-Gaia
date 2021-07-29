@@ -1,4 +1,5 @@
-import asyncio, binascii, curses, math
+import asyncio, binascii, math
+import paho.mqtt.client as mqtt
 
 from threading import Thread
 from bleak import BleakClient
@@ -10,6 +11,7 @@ DATA_CHAR_UUID = "09bf2c52-d1d9-c0b7-4145-475964544307"
 async_loop = asyncio.new_event_loop()
 
 client = None
+mqtt_client = None
 connected = False
 
 READ_ACCESS_BYTE = 0x82
@@ -24,6 +26,9 @@ MODE = 0x05
 FREQUENCY = 0x04
 #lunghezza dei dati inviati
 LENGTH = 0x03
+
+def on_connect(client, userdata, flags, rc):
+    print("Connesso al broker con codice {}".format(str(rc)))
 
 async def connection(address):
     global client
@@ -53,7 +58,7 @@ async def connection(address):
 
         #inizio a leggere i valori
         await client.start_notify(DATA_CHAR_UUID, notification_handler)
-        await asyncio.sleep(20.0)
+        await asyncio.sleep(60.0)
         await client.stop_notify(DATA_CHAR_UUID)
 
         await client.disconnect()
@@ -101,8 +106,23 @@ def data_conversion(pkg):
     print("\rPitch: {}\tRoll: {}".format(pitch, roll))
     print("\rYaw: {2:.2f}".format(x_mag, y_mag, yaw))
 
+    mqtt_client.publish("MITCH_readings_in", roll)
+
+
 def main(stdscr):
+    
+    global mqtt_client
+
+    mqtt_client = mqtt.Client()
+    mqtt_client.on_connect = on_connect
+
+    server_ip_address = "192.168.1.4"
+    port = 1883
+
+    mqtt_client.connect(server_ip_address, port)
     main_thread = Thread(target=main_callback)
     main_thread.start()
+
+    mqtt_client.loop_forever()
 
 main(0)
