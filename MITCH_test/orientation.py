@@ -176,17 +176,18 @@ def data_conversion(pkg):
 
     #print("z gyro: {}".format(z_gyro))
 
-    if z_gyro < -1.5 and current_yaw == 180.0:
-        current_yaw = 0.0
-    elif z_gyro > 1.5 and current_yaw == -180.0:
-        current_yaw = 0.0
+    if not is_turning:
+        if z_gyro < -1.5 and current_yaw == 180.0:
+            current_yaw = 0.0
+        elif z_gyro > 1.5 and current_yaw == -180.0:
+            current_yaw = 0.0
+    
+        if z_gyro > 5.0:
+            current_yaw = 180.0
+        elif z_gyro < -5.0:
+            current_yaw = -180.0
 
-    if z_gyro > 5.0:
-        current_yaw = 180.0
-    elif z_gyro < -5.0:
-        current_yaw = -180.0
-
-    print("Yaw: {}".format(current_yaw))
+    #print("Yaw: {}".format(current_yaw))
     #bisogna compensare il magnetometro nel caso in cui si ruoti
     #quando non si e sulla scrivania
     #per fare cio bisogna usare seno e coseno
