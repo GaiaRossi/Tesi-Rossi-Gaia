@@ -105,7 +105,7 @@ async def connection(address):
         #inizio a leggere i valori
         print("Stream avviato")
         await client.start_notify(DATA_CHAR_UUID, notification_handler)
-        await asyncio.sleep(60.0)
+        await asyncio.sleep(80.0)
         await client.stop_notify(DATA_CHAR_UUID)
 
         print("Disconnessione")
