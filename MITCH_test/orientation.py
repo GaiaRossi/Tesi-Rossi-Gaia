@@ -25,7 +25,12 @@ x_filtered = 0.0
 y_filtered = 0.0
 z_filtered = 0.0
 
+configured_up = False
+configured_down = False
+start_heading_up = 0.0
+start_heading_down = 0.0
 current_yaw = 0.0
+old_yaw = 0.0
 
 #settaggio del funzionamento del bracciale
 #sys tx
@@ -105,7 +110,7 @@ async def connection(address):
         #inizio a leggere i valori
         print("Stream avviato")
         await client.start_notify(DATA_CHAR_UUID, notification_handler)
-        await asyncio.sleep(80.0)
+        await asyncio.sleep(30.0)
         await client.stop_notify(DATA_CHAR_UUID)
 
         print("Disconnessione")
@@ -137,7 +142,8 @@ def main_callback():
 def data_conversion(pkg):
 
     global x_filtered, y_filtered, z_filtered
-    global current_yaw
+    global current_yaw, old_yaw
+    global configured_up, configured_down, start_heading_up, start_heading_down
 
     num_list = list(pkg)
 
@@ -168,24 +174,52 @@ def data_conversion(pkg):
 
     roll = 180 * math.atan2(x_axl, math.sqrt(y_axl**2 + z_axl**2))/math.pi
     pitch = 180 * math.atan2(y_axl, math.sqrt(x_axl**2 + z_axl**2))/math.pi
-
-    #cerco di simulare lo yaw se no non se ne esce
-    #uso la tecnica del giroscopio: se il giroscopio
-    #si muove ad una certa velocita sull asse delle y
-    #allora ruoto la base
-
-    #print("z gyro: {}".format(z_gyro))
-
-    if not is_turning:
-        if z_gyro < -1.5 and current_yaw == 180.0:
-            current_yaw = 0.0
-        elif z_gyro > 1.5 and current_yaw == -180.0:
-            current_yaw = 0.0
     
-        if z_gyro > 5.0:
-            current_yaw = 180.0
-        elif z_gyro < -5.0:
-            current_yaw = -180.0
+    if not configured_up:
+        start_heading_up = 180 * math.atan2(y_mag, x_mag)/math.pi
+        configured_up = True
+        configured_down = False
+    else:
+        if not is_turning:
+            if pitch < 10.0 and pitch > -10.0:
+                if roll < 10.0 and roll > -10.0:
+                    old_yaw = current_yaw
+                    current_yaw = 180 * math.atan2(y_mag, x_mag)/math.pi - start_heading_up 
+                else:
+                    current_yaw = old_yaw
+            else:
+                current_yaw = old_yaw
+        
+        if is_upside_down:
+            if not configured_down:
+                start_heading_down = 180 * math.atan2(-y_mag, x_mag)/math.pi
+                configured_down = True
+                #configured_up = False
+            else:
+                if not is_turning:
+                    old_yaw = current_yaw
+                    current_yaw = 180 * math.atan2(-y_mag, x_mag)/math.pi - start_heading_down
+        #cerco di simulare lo yaw se no non se ne esce
+        #uso la tecnica del giroscopio: se il giroscopio
+        #si muove ad una certa velocita sull asse delle y
+        #allora ruoto la base
+    #print("roll {} \t pitch {}".format(roll, pitch))
+        print("current yaw: {}".format(current_yaw))
+
+        #if not is_turning:
+
+        #    if z_gyro > 5.0 and current_yaw == 180.0:
+        #        current_yaw = 0.0
+        #    elif z_gyro < -5.0 and current_yaw == -180.0:
+        #        current_yaw = 0.0
+        #    else:
+        #        if z_gyro > 12.0:
+        #            if current_yaw > -180:
+        #                current_yaw = current_yaw - 90.0
+        #
+        #        if z_gyro < -12.0:
+        #            if current_yaw < 180:
+        #                current_yaw = current_yaw + 90.0
 
     #print("Yaw: {}".format(current_yaw))
     #bisogna compensare il magnetometro nel caso in cui si ruoti
