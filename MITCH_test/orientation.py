@@ -110,7 +110,7 @@ async def connection(address):
         #inizio a leggere i valori
         print("Stream avviato")
         await client.start_notify(DATA_CHAR_UUID, notification_handler)
-        await asyncio.sleep(30.0)
+        await asyncio.sleep(60.0)
         await client.stop_notify(DATA_CHAR_UUID)
 
         print("Disconnessione")
@@ -178,7 +178,7 @@ def data_conversion(pkg):
     if not configured_up:
         start_heading_up = 180 * math.atan2(y_mag, x_mag)/math.pi
         configured_up = True
-        configured_down = False
+        #configured_down = False
     else:
         if not is_turning:
             if pitch < 10.0 and pitch > -10.0:

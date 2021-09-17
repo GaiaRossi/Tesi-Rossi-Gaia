@@ -21,16 +21,17 @@ class Arm():
 		self.MIN_VALUE = -1
 		self.MAX_VALUE = 1
 		self.STEP = 0.01
-		self.sensitivity = 0.01
+		self.sensitivity = 0.1
 
 		self.multiplier = 1
-		self.is_idle = True
+		self.has_moved = False
 
-	def move(self, part_name, value):
+	def move(self, part_name, value, speed=0.0):
 		if value <= self.MIN_VALUE or value >= self.MAX_VALUE:
 			return -1
 
-		self.is_idle = False
+		self.has_moved = False
+
 		#se il valore in cui mi trovo adesso
 		#e piu grande di quello che devo assumere
 		#allora dovro diminuire, altrimenti aumentare
@@ -41,9 +42,9 @@ class Arm():
 		while not (self.parts[part_name].value > value - self.sensitivity and self.parts[part_name].value < value + self.sensitivity):
 			self.parts[part_name].value = self.parts[part_name].value + self.multiplier*self.STEP
 			print(self.parts[part_name].value)
-			#time.sleep(0.3)
+			time.sleep(speed)
+			self.has_moved = part_name
 
-		self.is_idle = True
 		return 0
 
 #variabili globali
@@ -75,10 +76,29 @@ def on_message(client, userdata, msg):
 		"elbow": json_msg["elbow"],
 		"shoulder": json_msg["shoulder"]
 	}
+	if not json_msg["speed"] == "N/D":
+		values["speed"] = json_msg["speed"]
+		for part_name, part in arm.parts.items():
+			status = arm.move(part_name, values[part_name], values["speed"][part_name])
+			if arm.has_moved:
+				data = {
+					"part_moved" : arm.has_moved
+				}
+				json_message = json.dumps(data)
+				client.publish("MeArm_response", json_message)
 
-	for part_name, part  in arm.parts.items():
-		status = arm.move(part_name, values[part_name])
+	else:
+		for part_name, part in arm.parts.items():
+			status = arm.move(part_name, values[part_name])
+			if arm.has_moved:
+				data = {
+					"part_moved" : arm.has_moved
+				}
+				json_message = json.dumps(data)
+				client.publish("MeArm_response", json_message)
 
+	#invio un messaggio dicendo quale parte del braccio e stata
+	#mossa cosi da poterlo mostrare nella dashboard
 
 #main
 client = mqtt.Client()
